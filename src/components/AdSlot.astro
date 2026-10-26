@@ -1,0 +1,23 @@
+---
+// 記事下の広告枠。site.config.mjs の adsense.enabled が false の間は何も出力しない。
+import { SITE } from '../site.config.mjs';
+
+const { enabled, client, slot } = SITE.adsense;
+---
+
+{
+  enabled && client && slot && (
+    <aside class="ad" aria-label="広告">
+      <p class="ad__label">広告</p>
+      <ins
+        class="adsbygoogle"
+        style="display:block"
+        data-ad-client={client}
+        data-ad-slot={slot}
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+      />
+      <script is:inline>(window.adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </aside>
+  )
+}

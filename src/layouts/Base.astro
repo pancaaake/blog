@@ -1,0 +1,104 @@
+---
+import { SITE } from '../site.config.mjs';
+import { url } from '../lib/posts';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description = SITE.description } = Astro.props;
+const pageTitle = title ? `${title} | ${SITE.title}` : SITE.title;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const { adsense } = SITE;
+---
+
+<!doctype html>
+<html lang={SITE.lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href={url('favicon.svg')} type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title={SITE.title} href={url('rss.xml')} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:type" content={title ? 'article' : 'website'} />
+    {
+      adsense.enabled && adsense.client && (
+        <script
+          is:inline
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsense.client}`}
+          crossorigin="anonymous"
+        />
+      )
+    }
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="site-title" href={url()}>{SITE.title}</a>
+      <nav>
+        <a href={url()}>記事</a>
+        <a href={url('glossary/')}>用語集</a>
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <p>
+        <a href={url('privacy/')}>プライバシーポリシー</a> ·
+        <a href={url('rss.xml')}>RSS</a>
+      </p>
+      <p>© {new Date().getFullYear()} {SITE.author}</p>
+    </footer>
+
+    <script>
+      // 用語ツールチップ：タップ／クリックで開閉、外側クリックと Esc で閉じる。
+      // 画面端からはみ出さないよう、開くたびに位置を調整する。
+      const GAP = 8;
+
+      function place(term: HTMLElement) {
+        const tip = term.querySelector<HTMLElement>('.term__tip');
+        if (!tip) return;
+        term.style.setProperty('--shift', '0px');
+        term.classList.remove('term--below');
+        const rect = tip.getBoundingClientRect();
+        let shift = 0;
+        if (rect.left < GAP) shift = GAP - rect.left;
+        else if (rect.right > window.innerWidth - GAP) shift = window.innerWidth - GAP - rect.right;
+        term.style.setProperty('--shift', `${shift}px`);
+        if (rect.top < GAP) term.classList.add('term--below');
+      }
+
+      function closeAll(except?: Element) {
+        document.querySelectorAll('.term.is-open').forEach((el) => {
+          if (el !== except) el.classList.remove('is-open');
+        });
+      }
+
+      document.addEventListener('click', (event) => {
+        const word = (event.target as Element).closest('.term__word');
+        if (!word) return closeAll();
+        const term = word.parentElement as HTMLElement;
+        closeAll(term);
+        term.classList.toggle('is-open');
+        if (term.classList.contains('is-open')) place(term);
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeAll();
+      });
+
+      document.querySelectorAll<HTMLElement>('.term').forEach((term) => {
+        term.addEventListener('mouseenter', () => place(term));
+        term.addEventListener('focusin', () => place(term));
+      });
+    </script>
+  </body>
+</html>

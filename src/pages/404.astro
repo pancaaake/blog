@@ -1,0 +1,10 @@
+---
+import Base from '../layouts/Base.astro';
+import { url } from '../lib/posts';
+---
+
+<Base title="ページが見つかりません">
+  <h1>ページが見つかりません</h1>
+  <p>URL が間違っているか、ページが移動・削除された可能性があります。</p>
+  <p><a href={url()}>トップページへ戻る</a></p>
+</Base>
