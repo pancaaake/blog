@@ -26,22 +26,23 @@ function toPlainText(markdown) {
     .trim();
 }
 
-function glossaryFiles(dir) {
+function glossaryFiles(dir, ext = '.md') {
   if (!fs.existsSync(dir)) return [];
   return fs
     .readdirSync(dir)
-    .filter((name) => name.endsWith('.md'))
+    .filter((name) => name.endsWith(ext))
     .sort()
     .map((name) => path.join(dir, name));
 }
 
 /**
- * 用語集の内容から作るハッシュ値。rehypeGlossary の設定に含めると、用語集が変わったときに
- * Astro が「設定が変わった」と判断して記事のキャッシュを捨て、全記事を作り直す。
+ * ディレクトリ内のファイルの内容から作るハッシュ値。Markdown プラグインの設定に含めると、
+ * そのファイル（用語集やプラグイン自身）が変わったときに Astro が「設定が変わった」と判断して
+ * 記事のキャッシュを捨て、全記事を作り直す。
  */
-export function glossaryDigest(dir) {
+export function dirDigest(dir, ext = '.md') {
   const hash = crypto.createHash('sha256');
-  for (const file of glossaryFiles(path.resolve(dir))) {
+  for (const file of glossaryFiles(path.resolve(dir), ext)) {
     hash.update(path.basename(file)).update('\0').update(fs.readFileSync(file)).update('\0');
   }
   return hash.digest('hex').slice(0, 16);
@@ -108,7 +109,7 @@ function buildTerm(word, entry, tipId) {
 
 /**
  * @param {{ dir: string, digest?: string, firstOnly?: boolean }} options
- *   dir: 用語集のディレクトリ / digest: glossaryDigest(dir) の値（キャッシュ無効化用）
+ *   dir: 用語集のディレクトリ / digest: dirDigest(dir) の値（キャッシュ無効化用）
  *   firstOnly: 記事内で各用語の最初の1回だけ変換する（既定 true）
  */
 export function rehypeGlossary({ dir, firstOnly = true }) {

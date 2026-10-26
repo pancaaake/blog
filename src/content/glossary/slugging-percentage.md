@@ -1,5 +1,6 @@
 ---
 term: 長打率
+category: 野球
 reading: ちょうだりつ
 aliases: [SLG]
 ---

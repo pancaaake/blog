@@ -1,6 +1,7 @@
 // remark-directive の書き方（::name{...} / :::name）を HTML に変換する remark プラグイン。
 //
 //   ::mymap{id="地図のID" title="地図の説明"}   Google マイマップを埋め込む
+//   ::mymap{id="..." size="large"}              本文より広く、画面の高さに合わせた大きな地図
 //
 //   :::pr                                       広告・アフィリエイトの枠（「PR」表示付き）
 //   ここに紹介文やリンクを書く
@@ -12,13 +13,19 @@ function element(tagName, properties, children = []) {
   return { type: 'embedElement', data: { hName: tagName, hProperties: properties }, children };
 }
 
+const MAP_SIZES = new Set(['large']);
+
 function mymap(node, file) {
-  const { id, title } = node.attributes ?? {};
+  const { id, title, size } = node.attributes ?? {};
   if (!id || !MYMAP_ID.test(id)) {
     file.fail('::mymap には id="..." で地図のID（URL の mid= の値）を指定してください', node);
   }
+  if (size && !MAP_SIZES.has(size)) {
+    file.fail(`::mymap の size は ${[...MAP_SIZES].join(', ')} のいずれかを指定してください`, node);
+  }
   const label = title || 'Google マイマップ';
-  node.data = { hName: 'div', hProperties: { className: ['embed', 'embed--map'] } };
+  const className = ['embed', 'embed--map', ...(size ? [`embed--${size}`] : [])];
+  node.data = { hName: 'div', hProperties: { className } };
   node.children = [
     element('iframe', {
       src: `https://www.google.com/maps/d/embed?mid=${encodeURIComponent(id)}`,

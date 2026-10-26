@@ -1,0 +1,38 @@
+---
+import { render, type CollectionEntry } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import AdSlot from './AdSlot.astro';
+import { ARTICLE_SECTIONS, formatDate, url, type ArticleCollection } from '../lib/posts';
+
+interface Props {
+  collection: ArticleCollection;
+  post: CollectionEntry<ArticleCollection>;
+}
+
+const { collection, post } = Astro.props;
+const { Content } = await render(post);
+const { title, date, updated, description, tags } = post.data;
+const section = ARTICLE_SECTIONS[collection];
+// 日記はトップページが一覧、技術は /tech/ が一覧
+const listUrl = collection === 'posts' ? url() : url(`${section.path}/`);
+---
+
+<Base title={title} description={description}>
+  <nav class="breadcrumb" aria-label="パンくずリスト">
+    <a href={listUrl}>{section.label}</a>
+  </nav>
+  <article class="post">
+    <header>
+      <h1>{title}</h1>
+      <p class="post-meta">
+        <time datetime={date.toISOString()}>{formatDate(date)}</time>
+        {updated && <span>（更新 <time datetime={updated.toISOString()}>{formatDate(updated)}</time>）</span>}
+        {tags.map((tag) => <span class="tag">#{tag}</span>)}
+      </p>
+    </header>
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+  <AdSlot />
+</Base>

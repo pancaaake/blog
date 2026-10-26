@@ -165,6 +165,51 @@ main,
   border-radius: 4px;
 }
 
+.page-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.75rem;
+}
+
+.empty {
+  color: var(--muted);
+}
+
+/* ゲーム */
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.breadcrumb a {
+  color: inherit;
+}
+
+.game-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1rem;
+}
+
+.game-notes {
+  margin-top: 3rem;
+}
+
+.game-notes h2 {
+  margin: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--border);
+  font-size: 1.25rem;
+}
+
+.game-notes .post-list time {
+  display: inline;
+  margin-left: 0.75rem;
+}
+
 /* 記事 */
 .post h1 {
   margin: 0 0 0.25rem;
@@ -204,6 +249,21 @@ main,
   border-radius: 6px;
   font-size: 0.9rem;
   line-height: 1.6;
+}
+
+/* コードの配色：ライトは github-light、ダークは github-dark（astro.config の shikiConfig） */
+@media (prefers-color-scheme: dark) {
+  .astro-code,
+  .astro-code span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+  }
+}
+
+.prose pre.astro-code {
+  border: 1px solid var(--border);
 }
 
 .prose :not(pre) > code {
@@ -305,6 +365,16 @@ main,
   background: var(--surface);
 }
 
+/* size="large"：本文の幅を超えて最大 72rem まで広げ、高さは画面の約75% */
+.embed--large {
+  position: relative;
+  left: 50%;
+  width: min(72rem, calc(100vw - 2rem));
+  height: clamp(24rem, 75vh, 52rem);
+  aspect-ratio: auto;
+  transform: translateX(-50%);
+}
+
 .embed--map iframe {
   display: block;
   width: 100%;
@@ -336,6 +406,22 @@ main,
 }
 
 /* 用語集 */
+.glossary-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.glossary-category {
+  margin: 2.5rem 0 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--border);
+  font-size: 1.25rem;
+  scroll-margin-top: 1rem;
+}
+
 .glossary dt {
   margin-top: 1.75rem;
   font-size: 1.1rem;

@@ -1,0 +1,42 @@
+---
+import { getEntry, render } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import AdSlot from '../../../components/AdSlot.astro';
+import { getGameNotes, gameIdOf, noteSlugOf } from '../../../lib/games';
+import { url, formatDate } from '../../../lib/posts';
+
+export async function getStaticPaths() {
+  const notes = await getGameNotes();
+  return notes.map((note) => ({
+    params: { game: gameIdOf(note), note: noteSlugOf(note) },
+    props: { note },
+  }));
+}
+
+const { note } = Astro.props;
+const game = (await getEntry('games', gameIdOf(note)))!;
+const { Content } = await render(note);
+const { title, description, date, updated, tags } = note.data;
+---
+
+<Base title={`${title}（${game.data.title}）`} description={description}>
+  <nav class="breadcrumb" aria-label="パンくずリスト">
+    <a href={url('games/')}>ゲーム</a>
+    <span aria-hidden="true">›</span>
+    <a href={url(`games/${game.id}/`)}>{game.data.title}</a>
+  </nav>
+  <article class="post">
+    <header>
+      <h1>{title}</h1>
+      <p class="post-meta">
+        {date && <time datetime={date.toISOString()}>{formatDate(date)}</time>}
+        {updated && <span>（更新 <time datetime={updated.toISOString()}>{formatDate(updated)}</time>）</span>}
+        {tags.map((tag) => <span class="tag">#{tag}</span>)}
+      </p>
+    </header>
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+  <AdSlot />
+</Base>

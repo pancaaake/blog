@@ -1,0 +1,12 @@
+---
+import Base from '../../layouts/Base.astro';
+import ArticleList from '../../components/ArticleList.astro';
+import { getPublishedPosts } from '../../lib/posts';
+
+const posts = await getPublishedPosts('tech');
+---
+
+<Base title="技術" description="プログラミングを中心とした技術メモ">
+  <h1 class="page-title">技術</h1>
+  <ArticleList collection="tech" posts={posts} />
+</Base>

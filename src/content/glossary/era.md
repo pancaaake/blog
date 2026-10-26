@@ -1,5 +1,6 @@
 ---
 term: 防御率
+category: 野球
 reading: ぼうぎょりつ
 aliases: [ERA]
 ---

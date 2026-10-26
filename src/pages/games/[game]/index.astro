@@ -1,0 +1,51 @@
+---
+import { render } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import { getGames, getGameNotes, noteSlugOf, noteDate } from '../../../lib/games';
+import { url, formatDate } from '../../../lib/posts';
+
+export async function getStaticPaths() {
+  const games = await getGames();
+  return games.map((game) => ({ params: { game: game.id }, props: { game } }));
+}
+
+const { game } = Astro.props;
+const { Content } = await render(game);
+const notes = await getGameNotes(game.id);
+const { title, platforms, description } = game.data;
+---
+
+<Base title={title} description={description ?? `${title} の攻略情報とメモ`}>
+  <nav class="breadcrumb" aria-label="パンくずリスト">
+    <a href={url('games/')}>ゲーム</a>
+  </nav>
+  <article class="post">
+    <header>
+      <h1>{title}</h1>
+      {platforms.length > 0 && <p class="post-meta">{platforms.join(' / ')}</p>}
+    </header>
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+
+  <section class="game-notes">
+    <h2>攻略・メモ</h2>
+    {notes.length === 0 && <p class="empty">まだメモがありません。</p>}
+    <ul class="post-list">
+      {
+        notes.map((note) => {
+          const date = noteDate(note);
+          return (
+            <li>
+              <a href={url(`games/${game.id}/${noteSlugOf(note)}/`)}>{note.data.title}</a>
+              {note.data.draft && <span class="badge">下書き</span>}
+              {date && <time datetime={date.toISOString()}>{formatDate(date)}</time>}
+              {note.data.description && <p>{note.data.description}</p>}
+            </li>
+          );
+        })
+      }
+    </ul>
+  </section>
+</Base>

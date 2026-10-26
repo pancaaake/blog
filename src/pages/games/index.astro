@@ -1,0 +1,36 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getGames, getGameNotes, gameIdOf, noteDate } from '../../lib/games';
+import { url, formatDate } from '../../lib/posts';
+
+const games = await getGames();
+const notes = await getGameNotes();
+
+const summaries = games.map((game) => {
+  const own = notes.filter((note) => gameIdOf(note) === game.id);
+  const dates = own.map(noteDate).filter((date): date is Date => !!date);
+  const lastUpdated = dates.length ? new Date(Math.max(...dates.map((d) => d.getTime()))) : undefined;
+  return { game, count: own.length, lastUpdated };
+});
+---
+
+<Base title="ゲーム" description="ゲームのタイトルごとの攻略情報とメモ">
+  <h1 class="page-title">ゲーム</h1>
+  {summaries.length === 0 && <p class="empty">まだタイトルがありません。</p>}
+  <ul class="post-list">
+    {
+      summaries.map(({ game, count, lastUpdated }) => (
+        <li>
+          <a href={url(`games/${game.id}/`)}>{game.data.title}</a>
+          {game.data.draft && <span class="badge">下書き</span>}
+          <p class="game-meta">
+            {game.data.platforms.length > 0 && <span>{game.data.platforms.join(' / ')}</span>}
+            <span>メモ {count} 件</span>
+            {lastUpdated && <span>最終更新 {formatDate(lastUpdated)}</span>}
+          </p>
+          {game.data.description && <p>{game.data.description}</p>}
+        </li>
+      ))
+    }
+  </ul>
+</Base>

@@ -2,26 +2,51 @@
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 
+const OTHER = 'その他';
+
 const sortKey = (entry: { data: { term: string; reading?: string } }) => entry.data.reading ?? entry.data.term;
 const entries = (await getCollection('glossary')).sort((a, b) => sortKey(a).localeCompare(sortKey(b), 'ja'));
 const rendered = await Promise.all(entries.map(async (entry) => ({ entry, ...(await render(entry)) })));
+
+// category ごとに分ける（未指定は「その他」として最後に置く）
+const groups = new Map<string, typeof rendered>();
+for (const item of rendered) {
+  const category = item.entry.data.category ?? OTHER;
+  groups.set(category, [...(groups.get(category) ?? []), item]);
+}
+const categories = [...groups.keys()].sort((a, b) =>
+  a === OTHER ? 1 : b === OTHER ? -1 : a.localeCompare(b, 'ja'),
+);
+const showHeadings = categories.length > 1;
 ---
 
 <Base title="用語集" description="記事中に出てくる用語の一覧">
-  <h1>用語集</h1>
-  <dl class="glossary">
-    {
-      rendered.map(({ entry, Content }) => (
-        <>
-          <dt id={entry.id}>
-            {entry.data.term}
-            {entry.data.aliases.length > 0 && <span class="aliases">（{entry.data.aliases.join('、')}）</span>}
-          </dt>
-          <dd class="prose">
-            <Content />
-          </dd>
-        </>
-      ))
-    }
-  </dl>
+  <h1 class="page-title">用語集</h1>
+  {
+    showHeadings && (
+      <nav class="glossary-toc" aria-label="分類">
+        {categories.map((category, i) => <a href={`#category-${i}`}>{category}</a>)}
+      </nav>
+    )
+  }
+  {
+    categories.map((category, i) => (
+      <section>
+        {showHeadings && <h2 class="glossary-category" id={`category-${i}`}>{category}</h2>}
+        <dl class="glossary">
+          {groups.get(category)!.map(({ entry, Content }) => (
+            <>
+              <dt id={entry.id}>
+                {entry.data.term}
+                {entry.data.aliases.length > 0 && <span class="aliases">（{entry.data.aliases.join('、')}）</span>}
+              </dt>
+              <dd class="prose">
+                <Content />
+              </dd>
+            </>
+          ))}
+        </dl>
+      </section>
+    ))
+  }
 </Base>
